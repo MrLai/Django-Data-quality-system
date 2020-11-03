@@ -45,6 +45,7 @@ INSTALLED_APPS = [
     'files',
     'api',
     'standard',
+    'blood',
     'backend',
 ]
 
@@ -83,7 +84,7 @@ DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
         'OPTIONS': {
-            'read_default_file': '/home/hyh/.my.cnf',
+            'read_default_file': '/home/pyweb/.my.cnf',
         },
     }
 }

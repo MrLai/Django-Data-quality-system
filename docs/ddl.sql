@@ -1,17 +1,19 @@
---DDL
+-- DDL
 CREATE DATABASE `data_quality` /*!40100 DEFAULT CHARACTER SET utf8 */ ;
 
 
---程序账号
-create user system@'127.0.0.1' identified by '';
+-- 程序账号
+create user system@'127.0.0.1' identified by 'H5cT7yHB8_';
 grant all PRIVILEGES on data_quality.* to 'system'@'127.0.0.1';
 flush privileges;
 
+use data_quality;
 
---检核规则库，作为每个新次检核的模板表
+-- 检核规则库，作为每个新次检核的模板表
 CREATE TABLE `check_result_template` (
   `id` int(11) NOT NULL COMMENT '排序用id',
-  `source_system` varchar(10) NOT NULL COMMENT '二级公司名或系统名',
+  `company` varchar(100) DEFAULT NULL COMMENT '二级公司名或系统名(拼音)',
+  `source_system` varchar(10) NOT NULL COMMENT '二级公司名或系统名(中文)',
   `check_item` varchar(100) DEFAULT NULL COMMENT '数据标准',
   `target_table` varchar(100) DEFAULT NULL COMMENT '目标表',
   `risk_market_item` varchar(2) DEFAULT NULL COMMENT '是否风险集市需要的指标',
@@ -31,7 +33,7 @@ CREATE TABLE `check_result_template` (
 );
 
 
---记录检核操作的日志表
+-- 记录检核操作的日志表
 CREATE TABLE `check_execute_log` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `company` varchar(30) NOT NULL,
@@ -43,7 +45,7 @@ CREATE TABLE `check_execute_log` (
 ) ;
 
 
---源系统改造需求管理表
+-- 源系统改造需求管理表
 CREATE TABLE `source_system_demand` (
   `id` int(11) DEFAULT NULL,
   `company` varchar(10) DEFAULT NULL,
@@ -54,10 +56,10 @@ CREATE TABLE `source_system_demand` (
   `status` varchar(100) DEFAULT NULL,
   `row_created` timestamp NULL DEFAULT CURRENT_TIMESTAMP
 );
---Excel数据导入的sql详见 demand\insert_excel.sql
+-- Excel数据导入的sql详见 demand\insert_excel.sql
 
 
---数据标准记录明细表
+-- 数据标准记录明细表
 CREATE TABLE `data_standard_detail` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `std_id` text CHARACTER SET utf8 COLLATE utf8_general_ci,
@@ -78,7 +80,7 @@ CREATE TABLE `data_standard_detail` (
 ) ;
 
 
---数据标准记录概述表
+-- 数据标准记录概述表
 CREATE TABLE `data_standard_desc` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `name` text CHARACTER SET utf8 COLLATE utf8_general_ci,
@@ -87,7 +89,29 @@ CREATE TABLE `data_standard_desc` (
 );
 
 
+-- 数据标准目录表
+CREATE TABLE `data_standard_index` (
+  `pk_id` int(11) NOT NULL AUTO_INCREMENT,
+  `idx_id` int(11) DEFAULT NULL COMMENT '树节点id',
+  `idx_pid` int(11) DEFAULT NULL COMMENT '树父节点id',
+  `idx_name` text CHARACTER SET utf8 COLLATE utf8_general_ci COMMENT '树节点名',
+  `is_open` text CHARACTER SET utf8 COLLATE utf8_general_ci COMMENT '树节点是否默认展开',
+  PRIMARY KEY (`pk_id`) USING BTREE
+) ;
+
+-- 数据标准更新记录表
+CREATE TABLE `data_standard_update_log` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `std_name` text CHARACTER SET utf8 COLLATE utf8_general_ci COMMENT '数据标准名',
+  `username` varchar(30) CHARACTER SET utf8 COLLATE utf8_general_ci DEFAULT NULL COMMENT '操作者',
+  `update_time` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  `previous_version` text CHARACTER SET utf8 COLLATE utf8_general_ci COMMENT '上一版本的内容',
+  PRIMARY KEY (`id`) USING BTREE
+);
+
+
 -- 日期维度表
+-- 时期生成，执行utils/generate_dim_date.py
 CREATE TABLE `dim_date` (
   `date` datetime DEFAULT NULL,
   `day_id` int(11) NOT NULL,
@@ -127,4 +151,13 @@ CREATE TABLE `source_db_info` (
   `charset` varchar(10) DEFAULT NULL,
   `note` varchar(200) DEFAULT NULL,
   PRIMARY KEY (`id`)
+);
+
+
+-- ETL源-目标表，用于血缘分析
+CREATE TABLE `datacenter_mapping` (
+  `subject_area` varchar(255) DEFAULT NULL,
+  `mapping_name` varchar(255) DEFAULT NULL,
+  `source` varchar(255) DEFAULT NULL,
+  `target` varchar(255) DEFAULT NULL
 );
